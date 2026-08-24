@@ -8,7 +8,14 @@
 
 *Transforming business data into insights, risk awareness, scenario evaluation, and optimized action recommendations.*
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=900&color=6C5CE7&center=true&vCenter=true&width=760&lines=📂+Business+Data+→+💡+Insights;📊+Analytics+→+⚠️+Risk+→+🎯+Decision;🤖+Machine+Learning+for+Business+Prediction;🧠+Multi-Agent+Reasoning+for+Smarter+Decisions;🔮+What-if+Analysis+Before+Taking+Action" alt="EVORA animated tagline"/>
+<div align="center">
+
+<img
+  src="https://readme-typing-svg.demolab.com?font=Montserrat&weight=600&size=20&duration=2800&pause=900&color=6C5CE7&center=true&vCenter=true&width=1000&lines=%F0%9F%93%8A+Transform+Business+Data+into+Insights;%E2%9A%A0%EF%B8%8F+Detect+Risk+with+AI+and+Machine+Learning;%F0%9F%94%AE+Predict+What+May+Happen+Next;%F0%9F%A4%96+Reason+with+Multi-Agent+AI;%F0%9F%A7%AA+Evaluate+What-if+Scenarios;%F0%9F%8E%AF+Optimize+Decisions+with+Evidence"
+  alt="EVORA animated tagline"
+/>
+
+</div>
 
 <br/>
 
