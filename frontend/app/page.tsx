@@ -5,6 +5,7 @@ import { useState } from "react";
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [metrics, setMetrics] = useState<any>(null);
+  const [predictedProfit, setPredictedProfit] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -16,11 +17,14 @@ export default function Home() {
 
     setLoading(true);
     setMessage("");
+    setMetrics(null);
+    setPredictedProfit(null);
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
+      // Step 1: Upload CSV
       const response = await fetch("http://127.0.0.1:8000/upload", {
         method: "POST",
         body: formData,
@@ -29,16 +33,61 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.detail?.message || data.detail || "Upload failed.");
-        setMetrics(null);
+        setMessage(
+          data.detail?.message ||
+            data.detail ||
+            "Upload failed."
+        );
         return;
       }
 
+      // Step 2: Show business metrics
       setMetrics(data.metrics);
       setMessage("CSV processed successfully.");
-    } catch {
-      setMessage("Unable to connect to EVORA backend.");
+
+      // Step 3: Send metrics to ML prediction API
+      const predictionResponse = await fetch(
+        "http://127.0.0.1:8000/ml/predict-profit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Quantity: Number(data.metrics.total_sales),
+            Revenue: Number(data.metrics.total_revenue),
+            Expense: Number(data.metrics.total_expense),
+          }),
+        }
+      );
+
+      const predictionData = await predictionResponse.json();
+
+      if (!predictionResponse.ok) {
+        console.error("Prediction error:", predictionData);
+        setMessage(
+          "CSV processed successfully, but profit prediction failed."
+        );
+        return;
+      }
+
+      // Step 4: Save predicted profit
+      setPredictedProfit(
+        Number(predictionData.predicted_profit)
+      );
+
+      setMessage(
+        "CSV processed and profit prediction completed successfully."
+      );
+    } catch (error) {
+      console.error("EVORA error:", error);
+
+      setMessage(
+        "Unable to connect to EVORA backend."
+      );
+
       setMetrics(null);
+      setPredictedProfit(null);
     } finally {
       setLoading(false);
     }
@@ -47,6 +96,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white px-6 py-12">
       <div className="mx-auto max-w-5xl">
+
         {/* Header */}
         <section className="text-center mb-12">
           <h1 className="text-5xl font-bold tracking-tight">
@@ -76,7 +126,9 @@ export default function Home() {
             <input
               type="file"
               accept=".csv"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e) =>
+                setFile(e.target.files?.[0] || null)
+              }
               className="block w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm"
             />
 
@@ -104,33 +156,72 @@ export default function Home() {
             </h2>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+
               <MetricCard
                 title="Revenue"
-                value={`₹${metrics.total_revenue.toLocaleString("en-IN")}`}
+                value={`₹${Number(
+                  metrics.total_revenue
+                ).toLocaleString("en-IN")}`}
               />
 
               <MetricCard
                 title="Expense"
-                value={`₹${metrics.total_expense.toLocaleString("en-IN")}`}
+                value={`₹${Number(
+                  metrics.total_expense
+                ).toLocaleString("en-IN")}`}
               />
 
               <MetricCard
                 title="Profit"
-                value={`₹${metrics.total_profit.toLocaleString("en-IN")}`}
+                value={`₹${Number(
+                  metrics.total_profit
+                ).toLocaleString("en-IN")}`}
               />
 
               <MetricCard
                 title="Sales"
-                value={metrics.total_sales.toLocaleString("en-IN")}
+                value={Number(
+                  metrics.total_sales
+                ).toLocaleString("en-IN")}
               />
+
+              {/* ML Prediction */}
+              <MetricCard
+                title="Predicted Profit"
+                value={
+                  predictedProfit !== null
+                    ? `₹${predictedProfit.toLocaleString("en-IN")}`
+                    : "Calculating..."
+                }
+              />
+
             </div>
+          </section>
+        )}
+
+        {/* ML Status */}
+        {predictedProfit !== null && (
+          <section className="mt-8 rounded-2xl border border-blue-800 bg-blue-950/30 p-6">
+            <h2 className="text-xl font-semibold">
+              🤖 AI Profit Prediction
+            </h2>
+
+            <p className="mt-2 text-slate-300">
+              EVORA ML model predicts the future profit based
+              on the uploaded business data.
+            </p>
+
+            <p className="mt-4 text-3xl font-bold text-blue-400">
+              ₹{predictedProfit.toLocaleString("en-IN")}
+            </p>
           </section>
         )}
 
         {/* Footer */}
         <footer className="mt-16 text-center text-sm text-slate-500">
-          EVORA — Day 1 Foundation
+          EVORA — AI Business Intelligence & Decision Optimization System
         </footer>
+
       </div>
     </main>
   );
@@ -145,8 +236,13 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <p className="text-sm text-slate-400">{title}</p>
-      <p className="mt-3 text-3xl font-bold">{value}</p>
+      <p className="text-sm text-slate-400">
+        {title}
+      </p>
+
+      <p className="mt-3 text-3xl font-bold">
+        {value}
+      </p>
     </div>
   );
 }

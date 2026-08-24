@@ -1,0 +1,6 @@
+Date,Product,Quantity,Revenue,Expense,Customer
+2026-08-01,Product A,100,20000,12000,Customer 1
+2026-08-02,Product B,150,30000,18000,Customer 2
+2026-08-03,Product C,200,40000,25000,Customer 3
+2026-08-04,Product A,120,24000,15000,Customer 4
+2026-08-05,Product B,140,28000,17000,Customer 5
