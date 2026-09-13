@@ -8,35 +8,16 @@ import sys
 from pathlib import Path
 import io
 
-# ============================================================
-# EVORA ROOT DIRECTORY
-# ============================================================
-
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(ROOT_DIR))
 
-
-# ============================================================
-# IMPORT FEATURE ENGINEERING
-# ============================================================
-
 from backend.features import prepare_features
-
-
-# ============================================================
-# FASTAPI APP
-# ============================================================
 
 app = FastAPI(
     title="EVORA API",
     description="AI Business Intelligence & Decision Optimization System",
     version="1.0.0"
 )
-
-
-# ============================================================
-# CORS
-# ============================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,11 +30,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ============================================================
-# LOAD ML MODEL
-# ============================================================
-
 MODEL_PATH = ROOT_DIR / "ml" / "profit_model.pkl"
 
 try:
@@ -64,10 +40,6 @@ except Exception as e:
     print(f"⚠️ Warning: Could not load ML model: {e}")
 
 
-# ============================================================
-# ROOT ENDPOINT
-# ============================================================
-
 @app.get("/")
 def root():
     return {
@@ -75,10 +47,6 @@ def root():
         "status": "online"
     }
 
-
-# ============================================================
-# HEALTH CHECK
-# ============================================================
 
 @app.get("/health")
 def health():
@@ -88,14 +56,9 @@ def health():
     }
 
 
-# ============================================================
-# CSV UPLOAD ENDPOINT
-# ============================================================
-
 @app.post("/upload")
 async def upload_csv(file: UploadFile = File(...)):
 
-    # Check file type
     if not file.filename:
         raise HTTPException(
             status_code=400,
@@ -110,17 +73,9 @@ async def upload_csv(file: UploadFile = File(...)):
 
     try:
 
-        # ----------------------------------------------------
-        # Read uploaded CSV
-        # ----------------------------------------------------
-
         contents = await file.read()
 
         df = pd.read_csv(io.BytesIO(contents))
-
-        # ----------------------------------------------------
-        # Check empty CSV
-        # ----------------------------------------------------
 
         if df.empty:
             raise HTTPException(
@@ -135,18 +90,10 @@ async def upload_csv(file: UploadFile = File(...)):
         print("Rows:", len(df))
         print("Columns:", list(df.columns))
 
-        # ----------------------------------------------------
-        # Normalize column names
-        # ----------------------------------------------------
-
         df.columns = [
             str(col).strip()
             for col in df.columns
         ]
-
-        # ----------------------------------------------------
-        # Find required columns
-        # ----------------------------------------------------
 
         required_columns = [
             "Quantity",
@@ -172,10 +119,6 @@ async def upload_csv(file: UploadFile = File(...)):
                 }
             )
 
-        # ----------------------------------------------------
-        # Convert numeric columns
-        # ----------------------------------------------------
-
         df["Quantity"] = pd.to_numeric(
             df["Quantity"],
             errors="coerce"
@@ -191,10 +134,6 @@ async def upload_csv(file: UploadFile = File(...)):
             errors="coerce"
         )
 
-        # ----------------------------------------------------
-        # Remove invalid rows
-        # ----------------------------------------------------
-
         df = df.dropna(
             subset=[
                 "Quantity",
@@ -209,17 +148,9 @@ async def upload_csv(file: UploadFile = File(...)):
                 detail="No valid numeric data found in Quantity, Revenue and Expense columns."
             )
 
-        # ----------------------------------------------------
-        # Calculate Profit
-        # ----------------------------------------------------
-
         df["Profit"] = (
             df["Revenue"] - df["Expense"]
         )
-
-        # ----------------------------------------------------
-        # Calculate Business Metrics
-        # ----------------------------------------------------
 
         total_revenue = float(
             df["Revenue"].sum()
@@ -237,10 +168,6 @@ async def upload_csv(file: UploadFile = File(...)):
             df["Quantity"].sum()
         )
 
-        # ----------------------------------------------------
-        # Average values
-        # ----------------------------------------------------
-
         average_revenue = float(
             df["Revenue"].mean()
         )
@@ -253,10 +180,6 @@ async def upload_csv(file: UploadFile = File(...)):
             df["Profit"].mean()
         )
 
-        # ----------------------------------------------------
-        # Profit Margin
-        # ----------------------------------------------------
-
         if total_revenue != 0:
 
             profit_margin = (
@@ -268,10 +191,6 @@ async def upload_csv(file: UploadFile = File(...)):
 
             profit_margin = 0.0
 
-        # ----------------------------------------------------
-        # Prepare ML Features
-        # ----------------------------------------------------
-
         feature_df = prepare_features(
             df[
                 [
@@ -281,10 +200,6 @@ async def upload_csv(file: UploadFile = File(...)):
                 ]
             ].copy()
         )
-
-        # ----------------------------------------------------
-        # ML Prediction
-        # ----------------------------------------------------
 
         predicted_profit = None
 
@@ -299,7 +214,6 @@ async def upload_csv(file: UploadFile = File(...)):
                 "Expense_per_Unit"
             ]
 
-            # Check features
             missing_features = [
                 feature
                 for feature in features
@@ -312,14 +226,9 @@ async def upload_csv(file: UploadFile = File(...)):
                     feature_df[features]
                 )
 
-                # Average prediction across uploaded rows
                 predicted_profit = float(
                     prediction.mean()
                 )
-
-        # ----------------------------------------------------
-        # Response
-        # ----------------------------------------------------
 
         return {
             "success": True,
@@ -369,10 +278,6 @@ async def upload_csv(file: UploadFile = File(...)):
         )
 
 
-# ============================================================
-# PROFIT PREDICTION REQUEST MODEL
-# ============================================================
-
 class ProfitPredictionRequest(BaseModel):
 
     Quantity: float
@@ -381,10 +286,6 @@ class ProfitPredictionRequest(BaseModel):
 
     Expense: float
 
-
-# ============================================================
-# ML PROFIT PREDICTION ENDPOINT
-# ============================================================
 
 @app.post("/ml/predict-profit")
 def predict_profit(
@@ -400,10 +301,6 @@ def predict_profit(
 
     try:
 
-        # ----------------------------------------------------
-        # Create DataFrame
-        # ----------------------------------------------------
-
         df = pd.DataFrame([
             {
                 "Quantity": data.Quantity,
@@ -412,15 +309,7 @@ def predict_profit(
             }
         ])
 
-        # ----------------------------------------------------
-        # Create required features
-        # ----------------------------------------------------
-
         df = prepare_features(df)
-
-        # ----------------------------------------------------
-        # Features used by ML model
-        # ----------------------------------------------------
 
         features = [
             "Quantity",
@@ -430,10 +319,6 @@ def predict_profit(
             "Revenue_per_Unit",
             "Expense_per_Unit"
         ]
-
-        # ----------------------------------------------------
-        # Check features
-        # ----------------------------------------------------
 
         missing_features = [
             feature
@@ -451,10 +336,6 @@ def predict_profit(
                 }
             )
 
-        # ----------------------------------------------------
-        # Predict Profit
-        # ----------------------------------------------------
-
         prediction = model.predict(
             df[features]
         )
@@ -462,10 +343,6 @@ def predict_profit(
         predicted_profit = float(
             prediction[0]
         )
-
-        # ----------------------------------------------------
-        # Return prediction
-        # ----------------------------------------------------
 
         return {
             "success": True,

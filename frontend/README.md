@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EVORA — Enterprise AI Frontend
+
+Clean, minimalist frontend for **EVORA (Enterprise Vision for Operations, Risk & Analytics)**.
+
+---
+
+## Technology Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router & React Server/Client Components)
+- **UI & Runtime**: [React 19](https://react.dev/) & [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with custom design tokens
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+---
+
+## Project Structure
+
+The project strictly follows a minimal, standard Next.js App Router structure:
+
+```text
+frontend/
+├── app/
+│   ├── dashboard/
+│   │   └── page.tsx        # Dashboard page displaying "Welcome to EVORA"
+│   ├── login/
+│   │   └── page.tsx        # Login / Authentication page (Google, GitHub, Email)
+│   ├── favicon.ico         # Application favicon
+│   ├── globals.css         # Clean design system tokens & base styles
+│   ├── layout.tsx          # Root layout with Inter font and AuthProvider
+│   └── page.tsx            # EVORA Landing Page
+│
+├── components/
+│   ├── AuthForm.tsx        # In-place Sign In & Account Creation form
+│   ├── CTA.tsx             # Conversion call-to-action & footer
+│   ├── Features.tsx        # Core platform capabilities breakdown
+│   ├── Hero.tsx            # Hero section with animated CTAs
+│   ├── HowItWorks.tsx      # 3-step intelligence workflow
+│   ├── Navbar.tsx          # Responsive sticky navigation bar
+│   └── OAuthButtons.tsx    # Google and GitHub OAuth authentication buttons
+│
+├── lib/
+│   ├── api.ts              # Typed API models & authentication client
+│   └── auth.ts             # AuthContext provider, session persistence, guards
+│
+├── public/                 # Static assets directory
+├── next.config.ts          # Next.js configuration
+├── tailwind.config.ts      # Tailwind theme configuration
+├── tsconfig.json           # TypeScript configuration
+└── package.json            # Application dependencies and scripts
+```
+
+---
+
+## Application Flow
+
+```text
+Landing Page (/)
+       ↓
+Login / Authentication (/login)
+   • Google OAuth
+   • GitHub OAuth
+   • Email Authentication
+       ↓
+Dashboard (/dashboard)
+       ↓
+"Welcome to EVORA"
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
+### Development Server
+Run the local Next.js development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Production Build
+Validate types and compile production bundle:
+```bash
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Code Quality & Linting
+Run ESLint to check code quality:
+```bash
+npm run lint
+```
